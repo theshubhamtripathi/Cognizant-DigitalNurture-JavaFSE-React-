@@ -1,1 +1,86 @@
+Create table :
+CREATE TABLE accounts (
+    account_id NUMBER PRIMARY KEY,
+    account_type VARCHAR2(20),
+    balance NUMBER(10,2)
+);
 
+CREATE TABLE employees (
+    employee_id NUMBER PRIMARY KEY,
+    name VARCHAR2(50),
+    department VARCHAR2(30),
+    salary NUMBER(10,2)
+);
+
+INSERT INTO accounts (account_id, account_type, balance) VALUES (1001, 'Savings', 5000.00);
+INSERT INTO accounts (account_id, account_type, balance) VALUES (1002, 'Savings', 10000.00);
+INSERT INTO accounts (account_id, account_type, balance) VALUES (1003, 'Checking', 2500.00);
+
+INSERT INTO employees (employee_id, name, department, salary) VALUES (501, 'Amit', 'HR', 45000.00);
+INSERT INTO employees (employee_id, name, department, salary) VALUES (502, 'Rahul', 'IT', 75000.00);
+INSERT INTO employees (employee_id, name, department, salary) VALUES (503, 'Sonia', 'IT', 80000.00);
+
+COMMIT;
+
+
+Scenario 1: Process Monthly Interest (1% for Savings Accounts)
+CREATE OR REPLACE PROCEDURE ProcessMonthlyInterest IS
+BEGIN
+    UPDATE accounts
+    SET balance = balance * 1.01
+    WHERE account_type = 'Savings';
+    
+    DBMS_OUTPUT.PUT_LINE('Monthly interest applied to all savings accounts.');
+    COMMIT;
+END;
+/
+
+Scenario 2: Update Employee Bonus by Department
+CREATE OR REPLACE PROCEDURE UpdateEmployeeBonus (
+    p_dept IN VARCHAR2,
+    p_bonus_percentage IN NUMBER
+) IS
+BEGIN
+    UPDATE employees
+    SET salary = salary + (salary * (p_bonus_percentage / 100))
+    WHERE department = p_dept;
+    
+    DBMS_OUTPUT.PUT_LINE('Bonus applied to department: ' || p_dept);
+    COMMIT;
+END;
+/
+
+Scenario 3: Fund Transfer Between Accounts (With Balance Check)
+CREATE OR REPLACE PROCEDURE TransferFunds (
+    p_from_account IN NUMBER,
+    p_to_account IN NUMBER,
+    p_amount IN NUMBER
+) IS
+    v_current_balance NUMBER;
+BEGIN
+    SELECT balance INTO v_current_balance
+    FROM accounts
+    WHERE account_id = p_from_account;
+
+    IF v_current_balance >= p_amount THEN
+        UPDATE accounts
+        SET balance = balance - p_amount
+        WHERE account_id = p_from_account;
+
+        UPDATE accounts
+        SET balance = balance + p_amount
+        WHERE account_id = p_to_account;
+
+        DBMS_OUTPUT.PUT_LINE('Transfer of $' || p_amount || ' from Account ' || p_from_account || ' to Account ' || p_to_account || ' completed successfully.');
+        COMMIT;
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('Transfer Failed: Insufficient funds in Account ' || p_from_account);
+    END IF;
+EXCEPTION
+    WHEN NO_DATA_FOUND THEN
+        DBMS_OUTPUT.PUT_LINE('Transfer Failed: One or both account IDs do not exist.');
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE('An unexpected error occurred during the transfer.');
+        ROLLBACK;
+END;
+/
