@@ -1,1 +1,86 @@
+Table creation code:
 
+CREATE TABLE customers (
+    customer_id NUMBER PRIMARY KEY,
+    age NUMBER,
+    interest_rate NUMBER(5,2),
+    balance NUMBER(10,2),
+    IsVIP VARCHAR2(10) DEFAULT 'FALSE'
+);
+
+CREATE TABLE loans (
+    loan_id NUMBER PRIMARY KEY,
+    customer_id NUMBER,
+    due_date DATE
+);
+
+INSERT INTO customers (customer_id, age, interest_rate, balance) VALUES (101, 65, 5.5, 12000);
+INSERT INTO customers (customer_id, age, interest_rate, balance) VALUES (102, 45, 6.0, 8500);
+INSERT INTO customers (customer_id, age, interest_rate, balance) VALUES (103, 72, 4.5, 3000);
+INSERT INTO customers (customer_id, age, interest_rate, balance) VALUES (104, 30, 5.0, 15000);
+
+INSERT INTO loans (loan_id, customer_id, due_date) VALUES (5001, 101, SYSDATE + 15);
+INSERT INTO loans (loan_id, customer_id, due_date) VALUES (5002, 102, SYSDATE + 45);
+INSERT INTO loans (loan_id, customer_id, due_date) VALUES (5003, 103, SYSDATE + 10);
+
+COMMIT;
+
+
+Scenario 1: Interest Rate Discount for Seniors (> 60)
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR c_customers IS
+        SELECT customer_id, age, interest_rate 
+        FROM customers;
+BEGIN
+    FOR r_cust IN c_customers LOOP
+        IF r_cust.age > 60 THEN
+            UPDATE customers
+            SET interest_rate = interest_rate - 1
+            WHERE customer_id = r_cust.customer_id;
+            
+            DBMS_OUTPUT.PUT_LINE('Discount applied for Customer ID: ' || r_cust.customer_id);
+        END IF;
+    END LOOP;
+    COMMIT;
+END;
+/
+
+Scenario 2: VIP Status Promotion (Balance > $10,000)
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR c_balances IS
+        SELECT customer_id, balance 
+        FROM customers;
+BEGIN
+    FOR r_cust IN c_balances LOOP
+        IF r_cust.balance > 10000 THEN
+            UPDATE customers
+            SET IsVIP = 'TRUE'
+            WHERE customer_id = r_cust.customer_id;
+            
+            DBMS_OUTPUT.PUT_LINE('Customer ' || r_cust.customer_id || ' promoted to VIP.');
+        END IF;
+    END LOOP;
+    COMMIT;
+END;
+/
+
+Scenario 3: Loan Due Reminders (Within 30 Days)
+SET SERVEROUTPUT ON;
+
+DECLARE
+    CURSOR c_due_loans IS
+        SELECT loan_id, customer_id, due_date
+        FROM loans
+        WHERE due_date BETWEEN SYSDATE AND SYSDATE + 30;
+BEGIN
+    FOR r_loan IN c_due_loans LOOP
+        DBMS_OUTPUT.PUT_LINE('REMINDER: Loan ID ' || r_loan.loan_id || 
+                             ' for Customer ID ' || r_loan.customer_id || 
+                             ' is due on ' || TO_CHAR(r_loan.due_date, 'YYYY-MM-DD') || '.');
+    END LOOP;
+END;
+/
