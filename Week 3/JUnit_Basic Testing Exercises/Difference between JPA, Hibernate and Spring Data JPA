@@ -23,9 +23,3 @@ Spring Data JPA is a module from the Spring Framework that sits directly on top 
 When using Spring Data JPA, you don't even have to write Hibernate code or write queries for basic operations.
 You just create a Java interface, extend JpaRepository<User, Long>, and Spring automatically implements everything for you behind the scenes.
 
-| Feature | JPA | Hibernate | Spring Data JPA |
-| :--- | :--- | :--- | :--- |
-| **What is it?** | A Specification (Java Standard Blueprint). | An ORM Framework (An implementation of JPA). | A Data Access Layer (An abstraction over Hibernate). |
-| **Does it have code?** | No, only interfaces and annotations. | Yes, it contains the core database translation engine. | Yes, it generates repository boilerplate code dynamically. |
-| **Can it run alone?** | No, it needs an engine like Hibernate. | Yes, it can run as a standalone database engine. | No, it requires an ORM framework underneath it. |
-| **Main benefit** | Ensures your code isn't locked to one framework. | Eliminates writing manual JDBC and raw SQL maps. | Eliminates writing repository implementation boilerplate. |
